@@ -8,6 +8,8 @@ import javax.xml.parsers.ParserConfigurationException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 @Builder(builderMethodName = "of")
 @AllArgsConstructor
@@ -20,12 +22,14 @@ public class MavenDownloader {
     private boolean downloadJavaDocs;
     private boolean downloadSources;
 
-    public void download() {
+    public DependencyResult download() {
         if (!exportDirectory.exists()) {
             if (!exportDirectory.mkdirs()) {
                 throw new RuntimeException("Failed to create export directory folder.");
             }
         }
+
+        List<ParsedPom.Dependency> unresolvedDependencies = new ArrayList<>();
 
         getParsedPom().getDependencies().forEach(dependency -> {
             File file = new File(exportDirectory, dependency.getOutputName());
@@ -52,6 +56,7 @@ public class MavenDownloader {
                     }).findFirst().orElse(null);
 
             if (repository == null) {
+                unresolvedDependencies.add(dependency);
                 return;
             }
 
@@ -61,6 +66,8 @@ public class MavenDownloader {
                 e.printStackTrace();
             }
         });
+
+        return new DependencyResult(parsedPom, unresolvedDependencies);
     }
 
     public ParsedPom getParsedPom() {
