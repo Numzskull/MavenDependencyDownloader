@@ -52,7 +52,7 @@ public class MavenDownloader {
                     }).findFirst().orElse(null);
 
             if (repository == null) {
-                throw new DependencyNotFoundException(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + dependency.getVersion());
+                return;
             }
 
             try {

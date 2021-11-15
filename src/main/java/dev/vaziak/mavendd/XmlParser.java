@@ -23,22 +23,31 @@ public class XmlParser {
         NodeList dependencyNodes = document.getDocumentElement().getElementsByTagName("dependencies");
 
         if (repositoryNodes != null) {
-            for (int i = 0; i < repositoryNodes.getLength(); i++) {
-                Element repositoryElement = (Element) repositoryNodes.item(i);
-                String url = repositoryElement.getElementsByTagName("url").item(0).getTextContent();
+            Element repositoryElement = (Element) repositoryNodes.item(0);
 
-                parsedPom.addRepository(new ParsedPom.Repository(url));
+            if (repositoryElement != null) {
+                NodeList urlList = repositoryElement.getElementsByTagName("url");
+
+                for (int i = 0; i < urlList.getLength(); i++) {
+                    parsedPom.addRepository(new ParsedPom.Repository(urlList.item(i).getTextContent()));
+                }
             }
         }
 
         if (dependencyNodes != null) {
-            for (int i = 0; i < dependencyNodes.getLength(); i++) {
-                Element dependencyElement = (Element) dependencyNodes.item(i);
-                String groupId = dependencyElement.getElementsByTagName("groupId").item(0).getTextContent();
-                String artifactId = dependencyElement.getElementsByTagName("artifactId").item(0).getTextContent();
-                String version = dependencyElement.getElementsByTagName("version").item(0).getTextContent();
+            Element dependencyElement = (Element) dependencyNodes.item(0);
+            if (dependencyElement != null) {
+                NodeList groupIdList = dependencyElement.getElementsByTagName("groupId");
+                NodeList artifactIdList = dependencyElement.getElementsByTagName("artifactId");
+                NodeList versionList = dependencyElement.getElementsByTagName("version");
 
-                parsedPom.addDependency(new ParsedPom.Dependency(groupId, artifactId, version));
+                for (int i = 0; i < groupIdList.getLength(); i++) {
+                    parsedPom.addDependency(new ParsedPom.Dependency(
+                            groupIdList.item(i).getTextContent(),
+                            artifactIdList.item(i).getTextContent(),
+                            versionList.item(i).getTextContent()
+                    ));
+                }
             }
         }
 
