@@ -31,8 +31,14 @@ public class ParsedPom {
     }
 
     @Getter
-    @RequiredArgsConstructor
     public static class Dependency {
-        private final String groupId, artifactId, version;
+        private final String groupId, artifactId, version, outputName;
+
+        public Dependency(String groupId, String artifactId, String version) {
+            this.groupId = groupId;
+            this.artifactId = artifactId;
+            this.version = version;
+            this.outputName = artifactId + "-" + version + ".jar";
+        }
     }
 }

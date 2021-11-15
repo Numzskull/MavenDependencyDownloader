@@ -14,36 +14,33 @@ import java.net.URL;
 public class MavenDownloader {
     private final File pomFile;
     private final File exportDirectory;
+
+    private ParsedPom parsedPom;
+
     private boolean downloadJavaDocs;
     private boolean downloadSources;
 
     public void download() {
-        ParsedPom parsedPom;
-
-        try {
-            parsedPom = new XmlParser().parseXml(pomFile);
-        } catch (IOException | SAXException | ParserConfigurationException e) {
-            e.printStackTrace();
-            return;
-        }
-
         if (!exportDirectory.exists()) {
             if (!exportDirectory.mkdirs()) {
                 throw new RuntimeException("Failed to create export directory folder.");
             }
         }
 
-        parsedPom.getDependencies().forEach(dependency -> {
-            String jarNameFormatted = String.format("%s-%s.jar",
-                    dependency.getArtifactId(), dependency.getVersion());
+        getParsedPom().getDependencies().forEach(dependency -> {
+            File file = new File(exportDirectory, dependency.getOutputName());
+
+            if (file.exists()) {
+                return;
+            }
 
             String formattedContent = String.format("%s/%s/%s/%s",
                     dependency.getGroupId().replaceAll("\\.", "/"),
                     dependency.getArtifactId(),
                     dependency.getVersion(),
-                    jarNameFormatted);
+                    dependency.getOutputName());
 
-            ParsedPom.Repository repository = parsedPom.getRepositories()
+            ParsedPom.Repository repository = getParsedPom().getRepositories()
                     .stream()
                     .filter(repo -> {
                         try {
@@ -55,16 +52,26 @@ public class MavenDownloader {
                     }).findFirst().orElse(null);
 
             if (repository == null) {
-                System.err.println("Could not find repository for dependency " + dependency.getArtifactId());
-                return;
+                throw new DependencyNotFoundException(dependency.getGroupId() + ":" + dependency.getArtifactId() + ":" + dependency.getVersion());
             }
 
             try {
-                HttpUtil.saveToFile(new URL(String.format("%s/%s", repository.getBaseUrl(), formattedContent)),
-                        new File(exportDirectory, jarNameFormatted));
+                HttpUtil.saveToFile(new URL(String.format("%s/%s", repository.getBaseUrl(), formattedContent)), file);
             } catch (IOException e) {
                 e.printStackTrace();
             }
         });
+    }
+
+    public ParsedPom getParsedPom() {
+        if (parsedPom == null) {
+            try {
+                parsedPom = new XmlParser().parseXml(pomFile);
+            } catch (IOException | SAXException | ParserConfigurationException e) {
+                e.printStackTrace();
+            }
+        }
+
+        return parsedPom;
     }
 }
