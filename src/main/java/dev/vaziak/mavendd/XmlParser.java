@@ -62,7 +62,7 @@ public class XmlParser {
                 NodeList versionList = dependencyElement.getElementsByTagName("version");
 
                 for (int i = 0; i < groupIdList.getLength(); i++) {
-                    String groupId = artifactIdList.item(i).getTextContent();
+                    String groupId = groupIdList.item(i).getTextContent();
                     String artifactId = artifactIdList.item(i).getTextContent();
                     String version = versionList.item(i).getTextContent();
 

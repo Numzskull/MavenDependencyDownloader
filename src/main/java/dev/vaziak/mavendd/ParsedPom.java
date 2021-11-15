@@ -12,8 +12,7 @@ public class ParsedPom {
     private final List<Dependency> dependencies = new ArrayList<>();
 
     public ParsedPom() {
-        // default maven repository
-        addRepository(new Repository("https://repo1.maven.org/maven2"));
+        addRepository(new Repository("https://repo1.maven.org/maven2")); // add default maven repository
     }
 
     public void addRepository(Repository repository) {
